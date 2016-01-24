@@ -5,6 +5,12 @@ using System.Runtime.InteropServices;
 
 namespace libVDesk {
   public class Desktop {
+    private IVirtualDesktop itf;
+
+    private Desktop(IVirtualDesktop itf) {
+      this.itf = itf;
+    }
+
     public static int Count {
       // Returns the number of desktops
       get { return DesktopManager.Manager.GetCount(); }
@@ -86,8 +92,6 @@ namespace libVDesk {
       return desk != null && object.ReferenceEquals(this.itf, desk.itf);
     }
 
-    private IVirtualDesktop itf;
-    private Desktop(IVirtualDesktop itf) { this.itf = itf; }
   }
 
   internal static class DesktopManager {

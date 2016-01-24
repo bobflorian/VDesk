@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 using Microsoft.Win32;
+using System.Threading;
 
 namespace VDesk {
   static class Program {
@@ -19,6 +20,8 @@ namespace VDesk {
       switch (args[0]) {
         case "-install": install(); return;  //add registry entries for context menu
         case "-uninstall": uninstall(); return;  //remove registry entries for context menu
+        case "-manage": manage(); return; //launch management gui
+        case "-daemon": daemon(); return; //run as daemon
         default: run(); return;
       }
     }
@@ -38,6 +41,8 @@ namespace VDesk {
       vdesk.Close();
       shell.Close();
       key.Close();
+
+      return;
     }
 
     static void uninstall() {
@@ -47,8 +52,58 @@ namespace VDesk {
         key.DeleteSubKeyTree("VDesk");
         
       key.Close();
+
+      return;
     }
 
+    static void manage() {
+      return;
+    }
+
+    static void daemon() {
+      int lastCount = Desktop.Count;
+      int lastActive = 0;
+      int n = 0;
+
+      // Let other programs take priority
+      Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+
+      while (true) {
+        // check desktop count for changes
+        if (lastCount != Desktop.Count) {
+          lastCount = Desktop.Count;
+          desktopCountChanged(lastCount);
+        }
+
+        // check if desktop has changed
+        for (int i = 0; i < Desktop.Count; i++) {
+          if (Desktop.FromIndex(i).IsVisible && lastActive != i) {
+            lastActive = i;
+            desktopChanged(i);
+          }
+        }
+
+        //GC about every second
+        n %= 60;
+        if (++n == 1)
+          GC.Collect();
+
+        //run ~60 times per second.
+        Thread.Yield();
+        Thread.Sleep(16);
+      }
+    }
+
+    static void desktopCountChanged(int count) {
+      // todo: ready for gui integration
+      return;
+    }
+
+    static void desktopChanged(int current) {
+      // todo: ready for gui integration
+      return;
+    }
+    
     static void run() {
       String[] clArgs = parseCommandLine(Environment.CommandLine);
       Process proc = new Process();
